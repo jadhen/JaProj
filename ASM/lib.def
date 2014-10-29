@@ -1,0 +1,2 @@
+LIBRARY "ASMLIB"
+EXPORTS dodaj
