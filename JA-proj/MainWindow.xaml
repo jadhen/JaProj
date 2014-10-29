@@ -14,7 +14,7 @@
             </StackPanel>
             <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 10 0 10" Width="112" Height="78">
                 <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Left" Width="132" Content="Number of threads"/>
-                <xctk:IntegerUpDown/>
+                
             </StackPanel>
             <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 0" Height="26" Width="40">
                 <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Left" Width="132" Content="Timer"/>
