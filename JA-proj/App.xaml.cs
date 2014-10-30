@@ -13,5 +13,6 @@ namespace JA_proj
     /// </summary>
     public partial class App : Application
     {
+
     }
 }

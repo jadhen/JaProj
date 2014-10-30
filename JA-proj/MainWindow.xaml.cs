@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xceed.Wpf.Toolkit;
+using JA_proj.ViewModel;
 namespace JA_proj
 {
     /// <summary>
@@ -22,6 +23,26 @@ namespace JA_proj
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
+        }
+
+        private void UIOnFileDrop(object sender, DragEventArgs e)
+        {
+            var dc = DataContext as MainViewModel;
+            if (dc != null)
+            {
+                dc.OnFileDragDrop(e);
+            }
+
+        }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            var dc = DataContext as MainViewModel;
+            if (dc != null)
+            {
+                dc.PresentComputingParameters();
+            }
         }
     }
 }
