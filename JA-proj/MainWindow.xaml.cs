@@ -23,26 +23,11 @@ namespace JA_proj
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel();
         }
 
-        private void UIOnFileDrop(object sender, DragEventArgs e)
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var dc = DataContext as MainViewModel;
-            if (dc != null)
-            {
-                dc.OnFileDragDrop(e);
-            }
 
-        }
-
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
-        {
-            var dc = DataContext as MainViewModel;
-            if (dc != null)
-            {
-                dc.PresentComputingParameters();
-            }
         }
     }
 }
