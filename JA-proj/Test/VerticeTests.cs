@@ -24,6 +24,12 @@ namespace JA_proj.Test
                 Vertices = new[] {new Vertex(10, 10), new Vertex(400, 200), new Vertex(200, 500)}
             };
 
+            var figure3 = new VerterxFigure("#FFAABE2E")
+            {
+                Name = "Squere",
+                Vertices = new[] { new Vertex(100, 10), new Vertex(800, 200), new Vertex(450, 500) }
+            };
+
             var figure2 = new Circle("#FFEA2E2E")
             {
                 Name = "Circle", 
@@ -34,7 +40,7 @@ namespace JA_proj.Test
             var figureFile = new DrawingConfiguration();
             figureFile.Height = 600;
             figureFile.Width = 600;
-            figureFile.Figures = new Figure[] {figure, figure2};
+            figureFile.Figures = new Figure[] {figure, figure2, figure3};
             var xmlSerializer = new XmlSerializer(typeof (DrawingConfiguration));
             using (var streamWriter = new StreamWriter("test.xml"))
             {

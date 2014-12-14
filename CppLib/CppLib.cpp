@@ -67,14 +67,26 @@ void FillPolygon(int numberOfIntersectionInRow, int * intersections, int max_x, 
 	int offset = max_x * row;
 	for (int i = 0; i < numberOfIntersectionInRow; i += 2)
 	{
+		int minX = intersections[i] < 0 ? 0 : intersections[i];
+		int maxX = intersections[i + 1] > max_x ? max_x : intersections[i + 1];
+
 		//if (intersections[i] >= max_x) break;
-		for (int j = intersections[i]; j <= intersections[i + 1]; j++)
+		for (int j = minX; j <= maxX; j++)
 		{
 			int index = offset + j;
 			canvas[index] = color;
 		}
 	}
 }
+
+extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, unsigned int color, Vertex center, int radius)
+{
+	for (int row = 0; row < rowCount; row++)
+	{
+
+	}
+}
+
 //bool isVertex(int x, int y)
 //{
 //	for (int i = 0;  i < numberOfVertices; i++)

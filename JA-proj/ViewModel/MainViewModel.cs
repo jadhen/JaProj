@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Documents.DocumentStructures;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -33,7 +34,7 @@ namespace JA_proj.ViewModel
         private AlgorithmsImplementation choosenAlgotithm;
         private IFigureLoader figureLoader;
         private string filePath;
-        private int numberOfThreads;
+        private int numberOfThreads = 1;
 
         /// <summary>
         ///     Initializes a new instance of the MainViewModel class.
@@ -41,6 +42,7 @@ namespace JA_proj.ViewModel
         public MainViewModel(IFigureLoader figureLoader)
         {
             this.figureLoader = figureLoader;
+            ChoosenAlgotithm = AlgorithmsImplementation.CPP;
             if (IsInDesignMode)
             {
                 DrawingConfiguration = TemplateDataLoader.LoadTemplateFigures();
@@ -86,35 +88,60 @@ namespace JA_proj.ViewModel
 
         private BitmapSource outputImage;
         private DrawingConfiguration drawingConfiguration;
-
+        /// <summary>
+        /// 
+        /// </summary>
         public BitmapSource OutputImage
         {
             get { return outputImage; }
             set { Set(() => OutputImage, ref outputImage, value); }
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void RunAlgorithm()
         {
             try
             {
                 var drawer = DrawingLibraryFactory.GetFigureDrawer(choosenAlgotithm, DrawingConfiguration.Width, DrawingConfiguration.Height );
-                var stream = new FileStream("new.png", FileMode.Create);
-                var encoder = new PngBitmapEncoder();
-                foreach (var figure in DrawingConfiguration.Figures)
+                int[] outputImageArray = drawer.GetEmptyBitmap();
+
+                int figuresCount = DrawingConfiguration.Figures.Length;
+                var threads = NumberOfThreads > figuresCount ? figuresCount : NumberOfThreads;
+                //
+                var figuresPerThread = (int)Math.Ceiling((double) figuresCount / threads);
+
+                Parallel.For(0, NumberOfThreads, (i) =>
                 {
-                    encoder.Interlace = PngInterlaceOption.On;
-                    OutputImage = figure.Draw(drawer);
-                    encoder.Frames.Add(BitmapFrame.Create(OutputImage));                
-                }
-                encoder.Save(stream);
-                stream.Close();    
-                
+                    var minIndex = i*figuresPerThread;
+                    var maxIndex = minIndex + figuresPerThread;
+                    maxIndex = maxIndex > figuresCount ? figuresCount : maxIndex;
+                    for (int j = minIndex; j < maxIndex; j++)
+                    {
+                        var figure = DrawingConfiguration.Figures[j];
+                        var imageArray = figure.Draw(drawer);
+                        lock (outputImageArray)
+                        {
+                            ImageUtility.AddImageToImage(imageArray, outputImageArray);
+                        }
+                    }           
+                });
+
+                OutputImage = ImageUtility.ConvertToImage(outputImageArray, DrawingConfiguration.Width, DrawingConfiguration.Height);                
             }
             catch (Exception e)
             {
                 var message = new NativeLibraryMessage();
-                message.Message = "Nie mo¿na uruchomiæ biblioteki " + e.Message; 
+                if (DrawingConfiguration == null || DrawingConfiguration.Figures == null)
+                {
+                    message.Message = "Proszê wczytaæ figury do narysowania";                     
+                }
+                else
+                {
+                    message.Message = "Nie mo¿na uruchomiæ biblioteki " + e.Message; 
+                    
+                }
                 Messenger.Default.Send(message);
             }
         }
@@ -146,6 +173,59 @@ namespace JA_proj.ViewModel
             {
                 Set(() => DrawingConfiguration, ref drawingConfiguration, value);
             }
+        }
+    }
+
+    internal static class ImageUtility
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="imageArray"></param>
+        /// <param name="outputImage"></param>
+        public static void AddImageToImage(int[] imageArray, int[] outputImage)
+        {
+            for (int i = 0; i < imageArray.Length; i++)
+            {
+                
+                var alpha = ((uint)imageArray[i]) >> 24;
+                if(alpha > 0)
+                    outputImage[i] = imageArray[i];
+            }
+        }
+
+        public static BitmapSource ConvertToImage(int[] bitmapArray, int width, int height)
+        {
+            var bytes = GetByteArrayFromIntArray(bitmapArray);
+            var format = PixelFormats.Pbgra32;
+            var stride = width * format.BitsPerPixel / 8;
+            return BitmapSource.Create(width, height, 96, 96, format, null, bytes, stride);
+        }
+
+        private static byte[] GetByteArrayFromIntArray(int[] intArray)
+        {
+
+            byte[] data = new byte[intArray.Length * 4];
+
+            for (int i = 0; i < intArray.Length; i++)
+
+                Array.Copy(BitConverter.GetBytes(intArray[i]), 0, data, i * 4, 4);
+
+            return data;
+
+        }
+
+        public static void SaveBitmap(BitmapSource source, string imagePath)
+        {
+            var stream = new FileStream(imagePath, FileMode.Create);
+            var encoder = new PngBitmapEncoder();
+            encoder.Interlace = PngInterlaceOption.On;
+
+            encoder.Frames.Add(BitmapFrame.Create(source));
+
+            encoder.Save(stream);
+            stream.Close();    
+
         }
     }
 }

@@ -36,49 +36,26 @@ namespace JA_proj.ViewModel
         }
 
 
-        private BitmapSource ConvertToImage(int[] bitmapArray)
+        
+
+        public int[] DrawVerticesFigure(Vertex[] vertices, Color color)
         {
-            var bytes = GetByteArrayFromIntArray(bitmapArray);
-            var format = PixelFormats.Pbgra32;
-            var stride = bitmapWidth * format.BitsPerPixel / 8;
-            return BitmapSource.Create(bitmapWidth, bitmapHeight, 96, 96, format, null, bytes, stride);
-        }
-     
-
-        private int[] GetBitmapArray()
-        {
-            return  new int[bitmapWidth * bitmapHeight];
-        }
-
-        public static byte[] GetByteArrayFromIntArray(int[] intArray)
-        {
-
-            byte[] data = new byte[intArray.Length * 4];
-
-            for (int i = 0; i < intArray.Length; i++)
-
-                Array.Copy(BitConverter.GetBytes(intArray[i]), 0, data, i * 4, 4);
-
-            return data;
-
-        }
-
-        public BitmapSource DrawVerticesFigure(Vertex[] vertices, Color color)
-        {
-            int[] bitmapArray = GetBitmapArray();
+            int[] bitmapArray = GetEmptyBitmap();
             drawer.CallDrawFigure(bitmapArray, bitmapHeight, bitmapWidth, color , vertices);
-            var bitmap = ConvertToImage(bitmapArray);
+            return bitmapArray;
 
-            return bitmap;
         }
 
-        public BitmapSource DrawCircle(Vertex center, int radius, Color color)
+        public int[] DrawCircle(Vertex center, int radius, Color color)
         {
-            int[] bitmapArray = GetBitmapArray();
+            int[] bitmapArray = GetEmptyBitmap();
             drawer.CallDrawCircle(bitmapArray, bitmapHeight, bitmapWidth, color, center, radius);
-            var bitmap = ConvertToImage(bitmapArray);
+            return bitmapArray;
+        }
 
-            return bitmap;
+        public int[] GetEmptyBitmap()
+        {
+            return new int[bitmapWidth * bitmapHeight];
         }
     }
 }

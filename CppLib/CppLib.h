@@ -17,3 +17,4 @@ extern "C" CPPLIB_API struct Vertex
 };
 
 extern "C" CPPLIB_API void DrawFigure(int bitmapArray[], int rowCount, int columnCount, int color, Vertex vertexTab[], int vertexCount);
+extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, unsigned int color, Vertex center, int radius);

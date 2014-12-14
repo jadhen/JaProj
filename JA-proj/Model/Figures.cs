@@ -28,15 +28,16 @@ namespace JA_proj.ViewModel
             Name = name;
         }
 
-        public abstract BitmapSource Draw(IFigureDrawer drawer);
+        public abstract int[] Draw(IFigureDrawer drawer);
         public string Name { get; set; }
         public FigureColor Color { get; set; }
     }
 
     public interface IFigureDrawer
     {
-        BitmapSource DrawVerticesFigure(Vertex[] vertices, Color color);
-        BitmapSource DrawCircle(Vertex center, int radius, Color color);
+        int[] DrawVerticesFigure(Vertex[] vertices, Color color);
+        int[] DrawCircle(Vertex center, int radius, Color color);
+        int[] GetEmptyBitmap();
     }
 
     public class VerterxFigure : Figure
@@ -56,7 +57,7 @@ namespace JA_proj.ViewModel
         }
 
         public Vertex[] Vertices{ get; set; }
-        public override BitmapSource Draw(IFigureDrawer drawer)
+        public override int[] Draw(IFigureDrawer drawer)
         {
             return drawer.DrawVerticesFigure(Vertices, Color.Color);       
         }
@@ -123,7 +124,7 @@ namespace JA_proj.ViewModel
 
         public Vertex Center { get; set; }
         public int Radius { get; set; }
-        public override BitmapSource Draw(IFigureDrawer drawer)
+        public override int[] Draw(IFigureDrawer drawer)
         {
             return drawer.DrawCircle(Center, Radius, Color.Color);
         }
