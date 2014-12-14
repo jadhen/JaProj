@@ -2,6 +2,6 @@
 {
     public interface IFigureLoader
     {
-        Figure[] LoadFromFile(string filePath);
+        DrawingConfiguration LoadFromFile(string filePath);
     }
 }

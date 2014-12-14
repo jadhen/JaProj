@@ -11,8 +11,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using GalaSoft.MvvmLight.Messaging;
+using JA_proj.Messages;
 using Xceed.Wpf.Toolkit;
 using JA_proj.ViewModel;
+using MessageBox = System.Windows.MessageBox;
+
 namespace JA_proj
 {
     /// <summary>
@@ -23,6 +27,18 @@ namespace JA_proj
         public MainWindow()
         {
             InitializeComponent();
+            Messenger.Default.Register<InvalidXmlMessage>(this, ReceiveInvalidXml);
+            Messenger.Default.Register<NativeLibraryMessage>(this, ReceiveNativeLibraryMessage);
+        }
+
+        private void ReceiveNativeLibraryMessage(NativeLibraryMessage obj)
+        {
+            MessageBox.Show(obj.Message, "Bilbioteka");
+        }
+
+        private void ReceiveInvalidXml(InvalidXmlMessage obj)
+        {
+            MessageBox.Show(obj.InvalidMessage, "Błąd wczytywania pliku");
         }
 
         private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)

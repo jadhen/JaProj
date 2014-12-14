@@ -4,14 +4,15 @@
         xmlns:converters="clr-namespace:JA_proj.Converters"
         xmlns:local="clr-namespace:JA_proj.Model"
         DataContext="{Binding Main, Source={StaticResource Locator}}"
-        Title="MainWindow" Height="535.2" Width="600" >
+        Title="MainWindow" Height="535.2" Width="665.6" >
     <Window.Resources>
         <converters:EnumGroupRadioButton x:Key="RadioButtonnConverter"></converters:EnumGroupRadioButton>
+        <converters:ShapeConverter x:Key="ShapeConverter"></converters:ShapeConverter>
     </Window.Resources>
     <Grid Background="#D3D3D3">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="359*"/>
-            <ColumnDefinition Width="234*"/>
+            <ColumnDefinition Width="447*"/>
+            <ColumnDefinition Width="209*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="4*"/>
@@ -19,48 +20,50 @@
         </Grid.RowDefinitions>
 
 
-        <StackPanel Margin="0,10,-0.4,2" Grid.ColumnSpan="2">
+        <StackPanel Margin="10,10,210.2,2" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-            <StackPanel Orientation="Horizontal" Height="97" Margin="0,0,-0.4,0">
-
-                <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Center" Margin="10 0 20 0" >
+                <StackPanel Margin="10 0 20 0" >
                     <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Left"  Content="Choose library"/>
                     <RadioButton Foreground="#207559" FontSize="14" Content="ASM" IsChecked="{Binding ChoosenAlgotithm, ConverterParameter={x:Static local:AlgorithmsImplementation.ASM}, Converter={StaticResource RadioButtonnConverter}}"/>
                     <RadioButton Foreground="#207559" FontSize="14" Content="C++" IsChecked="{Binding ChoosenAlgotithm, ConverterParameter={x:Static local:AlgorithmsImplementation.CPP}, Converter={StaticResource RadioButtonnConverter}}"/>
                 </StackPanel>
-                <StackPanel   HorizontalAlignment="Center" Margin="10 0 20 0">
+                <StackPanel   HorizontalAlignment="Center" Margin="10,0,20,0.2">
                     <Label  Foreground="#434443" FontSize="14" HorizontalAlignment="Center"  Content="Number of threads" VerticalAlignment="Top"/>
-                    <TextBox  VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" FontSize="22" Foreground="#207559" HorizontalAlignment="Center" Text="{Binding NumberOfThreads, Mode=TwoWay}" />
+                    <CheckBox x:Name="Auto" Content="Auto"  BorderBrush="{x:Null}" HorizontalAlignment="Center" IsChecked="True"/>
+                    <TextBox  VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" FontSize="22" Foreground="#207559" HorizontalAlignment="Center" Text="{Binding NumberOfThreads, Mode=TwoWay}" RenderTransformOrigin="0.489,0.256" Height="29" />
                 </StackPanel>
-                <StackPanel  VerticalAlignment="Stretch" HorizontalAlignment="Center" Margin="10 0 20 0" >
-                    <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Center" Content="Timer"/>
+                <StackPanel  VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10,0,20,0" Height="65" Width="67" >
+                    <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Center" Content="Timer" Height="33" Margin="11,0,11.2,0"/>
                     <TextBox Background="Transparent" BorderBrush="Transparent" FontSize="22"  Foreground="#207559" HorizontalAlignment="Center" Text="00:00"/>
                 </StackPanel>
             </StackPanel>
 
 
         </StackPanel>
-        <StackPanel Grid.Column="1" Height="379" Margin="8.8,8,9.6,0" VerticalAlignment="Top" Grid.Row="1"/>
-        <Button  Margin="8.8,10,9.6,12" Content="Run" Background="#207559" Foreground="#D3D3D3" FontSize="16" FontWeight="Bold" BorderBrush="Transparent" Grid.Column="1" Command="{Binding RunCommand}"/>
-        <Grid Margin="9.8,8,9.6,9.6" Grid.Column="1" Grid.Row="1">
+        <StackPanel Grid.Column="2" Height="379" Margin="8.8,8,9.2,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <Button  Margin="8.8,10,9.2,12" Content="Run" Background="#207559" Foreground="#D3D3D3" FontSize="30" FontWeight="Bold" BorderBrush="Transparent" Grid.Column="2" Command="{Binding RunCommand}"/>
+        <Grid Margin="9.8,8,9.2,9.6" Grid.Column="2" Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="57*"/>
                 <RowDefinition Height="322*"/>
             </Grid.RowDefinitions>
-            <Button Content="Select File" Margin="0,0,0,9.8" Command="{Binding LoadFiguresCommand}"/>
-            <ListView HorizontalAlignment="Left" Grid.Row="1" Width="215" Margin="0,10,0,0" ItemsSource="{Binding Figures}" SelectionChanged="ListView_SelectionChanged">
-               <ListView.ItemTemplate>
-                   <DataTemplate>
-                       <StackPanel Orientation="Horizontal">
-                           <Rectangle Height="10" Width="10" Fill="{Binding Color.HexColor, Mode=OneWay}" />
+            <Button Content="Select File" Margin="0,0,0,10" Command="{Binding LoadFiguresCommand}" BorderBrush="#FF207559" Background="LightGray" Foreground="#FF207559" FontSize="18" FontWeight="Bold" BorderThickness="2"/>
+            <ListView Grid.Row="1" ItemsSource="{Binding DrawingConfiguration.Figures}" SelectionChanged="ListView_SelectionChanged" Background="LightGray" BorderBrush="#FF207559" BorderThickness="2" Margin="0,0,-0.2,0">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <!--<Rectangle Height="10" Width="10" Fill="{Binding Color.HexColor, Mode=OneWay}" />-->
+                            <ContentControl Content="{Binding Converter={StaticResource ShapeConverter}}"></ContentControl>
                             <Label Content="{Binding Name}"></Label>
-                            <Label Content="{Binding Vertices.Length}"></Label>
                         </StackPanel>
-                   </DataTemplate>
-               </ListView.ItemTemplate>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <Image Margin="10,10,10.2,9.6" Grid.Row="1"/>
-        
+        <Border BorderBrush="#FF207559" BorderThickness="3" Margin="10,8,7.8,11.6" Grid.Row="1" Background="#FF959595">
+            <Image Margin="10" Source="{Binding OutputImage, Mode=TwoWay}" Grid.Row="1"/>
+        </Border>
+
     </Grid>
 </Window>

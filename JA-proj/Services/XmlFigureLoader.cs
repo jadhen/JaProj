@@ -5,13 +5,13 @@ namespace JA_proj.ViewModel
 {
     public class XmlFigureLoader : IFigureLoader
     {
-        public Figure[] LoadFromFile(string filePath)
+        public DrawingConfiguration LoadFromFile(string filePath)
         {
-            var deserializer = new XmlSerializer(typeof(FigureFile));
+            var deserializer = new XmlSerializer(typeof(DrawingConfiguration));
             using (var streamReader = new StreamReader(filePath))
             {
-                var figureFile = deserializer.Deserialize(streamReader) as FigureFile;
-                return figureFile.Figures;
+                var figureFile = deserializer.Deserialize(streamReader) as DrawingConfiguration;
+                return figureFile;
             }
         }
     }
