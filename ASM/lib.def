@@ -1,2 +1,3 @@
 LIBRARY "ASMLIB"
-EXPORTS dodaj
+EXPORTS DrawFigure
+		DrawCircle

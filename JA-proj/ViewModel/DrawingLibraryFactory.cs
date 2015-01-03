@@ -11,7 +11,7 @@ namespace JA_proj.ViewModel
             switch (implementation)
             {
                 case AlgorithmsImplementation.ASM:
-                    return null;
+                    return new AsmLibraryAccesor();
                 case AlgorithmsImplementation.CPP:
                     return new CppAccesorLibrary();
                 default:

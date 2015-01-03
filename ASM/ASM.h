@@ -25,5 +25,5 @@ extern "C" ASM_API struct Vertex
 extern ASM_API int nASM;
 
 ASM_API int fnASM(void);
-extern "C" ASM_API void DrawFigure(int bitmapArray[], int rowCount, int columnCount, int color, Vertex vertexTab[], int vertexCount);
-extern "C" ASM_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, unsigned int color, Vertex center, int radius);
+extern "C" ASM_API void _stdcall DrawFigure(int bitmapArray[], int rowCount, int columnCount, int color, Vertex vertexTab[], int vertexCount);
+extern "C" ASM_API void _stdcall DrawCircle(int bitmapArray[], int rowCount, int columnCount, int color, Vertex center, int radius);

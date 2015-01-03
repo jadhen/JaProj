@@ -86,7 +86,7 @@ bool IsInsideCircle(int centerX, int centerY, int radianSqrt, int x, int y)
 	int sum = part1 + part2;
 	return sum < radianSqrt;
 }
-extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, unsigned int color, Vertex center, int radius)
+extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, int color, Vertex center, int radius)
 {
 	for (int row = 0; row < rowCount; row++)
 	{
