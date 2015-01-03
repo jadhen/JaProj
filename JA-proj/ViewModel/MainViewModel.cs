@@ -13,6 +13,7 @@ using GalaSoft.MvvmLight.Messaging;
 using JA_proj.Messages;
 using JA_proj.Model;
 using Microsoft.Win32;
+using System.Diagnostics;
 using Image = System.Windows.Controls.Image;
 
 namespace JA_proj.ViewModel
@@ -34,7 +35,8 @@ namespace JA_proj.ViewModel
         private AlgorithmsImplementation choosenAlgotithm;
         private IFigureLoader figureLoader;
         private string filePath;
-        private int numberOfThreads = 1;
+        private int numberOfThreads = Environment.ProcessorCount;
+        private string executionTime = "00:00";
 
         /// <summary>
         ///     Initializes a new instance of the MainViewModel class.
@@ -104,6 +106,8 @@ namespace JA_proj.ViewModel
         {
             try
             {
+
+                
                 var drawer = DrawingLibraryFactory.GetFigureDrawer(choosenAlgotithm, DrawingConfiguration.Width, DrawingConfiguration.Height );
                 int[] outputImageArray = drawer.GetEmptyBitmap();
 
@@ -111,7 +115,7 @@ namespace JA_proj.ViewModel
                 var threads = NumberOfThreads > figuresCount ? figuresCount : NumberOfThreads;
                 //
                 var figuresPerThread = (int)Math.Ceiling((double) figuresCount / threads);
-
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 Parallel.For(0, NumberOfThreads, (i) =>
                 {
                     var minIndex = i*figuresPerThread;
@@ -125,10 +129,12 @@ namespace JA_proj.ViewModel
                         {
                             ImageUtility.AddImageToImage(imageArray, outputImageArray);
                         }
-                    }           
+                    }
+                    
                 });
-
-                OutputImage = ImageUtility.ConvertToImage(outputImageArray, DrawingConfiguration.Width, DrawingConfiguration.Height);                
+                stopwatch.Stop();
+                OutputImage = ImageUtility.ConvertToImage(outputImageArray, DrawingConfiguration.Width, DrawingConfiguration.Height);
+                ExecutionTime = stopwatch.Elapsed.Seconds + " : " + stopwatch.Elapsed.Milliseconds;
             }
             catch (Exception e)
             {
@@ -172,6 +178,16 @@ namespace JA_proj.ViewModel
             set
             {
                 Set(() => DrawingConfiguration, ref drawingConfiguration, value);
+            }
+        }
+
+        public string ExecutionTime
+        {
+            get { return executionTime ; }
+            set
+            {
+                Set(() => ExecutionTime, ref executionTime, value); 
+                
             }
         }
     }

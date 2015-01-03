@@ -21,7 +21,7 @@
 
 
         <StackPanel Margin="10,10,210.2,2" Grid.ColumnSpan="2" HorizontalAlignment="Left">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="75">
 
                 <StackPanel Margin="10 0 20 0" >
                     <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Left"  Content="Choose library"/>
@@ -29,13 +29,16 @@
                     <RadioButton Foreground="#207559" FontSize="14" Content="C++" IsChecked="{Binding ChoosenAlgotithm, ConverterParameter={x:Static local:AlgorithmsImplementation.CPP}, Converter={StaticResource RadioButtonnConverter}}"/>
                 </StackPanel>
                 <StackPanel   HorizontalAlignment="Center" Margin="10,0,20,0.2">
-                    <Label  Foreground="#434443" FontSize="14" HorizontalAlignment="Center"  Content="Number of threads" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="Auto" Content="Auto"  BorderBrush="{x:Null}" HorizontalAlignment="Center" IsChecked="True"/>
-                    <TextBox  VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" FontSize="22" Foreground="#207559" HorizontalAlignment="Center" Text="{Binding NumberOfThreads, Mode=TwoWay}" RenderTransformOrigin="0.489,0.256" Height="29" />
+                    <Label  Foreground="#434443" FontSize="14" HorizontalAlignment="Center"  Content="Number of threads" VerticalAlignment="Top" Height="33" Margin="0,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+
+                        <CheckBox x:Name="Auto" Content="Auto"  BorderBrush="{x:Null}" IsChecked="True" VerticalAlignment="Center" HorizontalAlignment="Center" Width="60" Margin="10,0,0,0"/>
+                        <TextBox  VerticalAlignment="Center" Background="Transparent" BorderBrush="Transparent" FontSize="22" Foreground="#207559" HorizontalAlignment="Center" Text="{Binding NumberOfThreads, Mode=TwoWay}" RenderTransformOrigin="0.492,0.517" Height="31" Width="48" TextAlignment="Center" SelectionBrush="{x:Null}" />
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel  VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10,0,20,0" Height="65" Width="67" >
+                <StackPanel  VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10,0,20,0" Height="75" Width="100" >
                     <Label Foreground="#434443" FontSize="14" HorizontalAlignment="Center" Content="Timer" Height="33" Margin="11,0,11.2,0"/>
-                    <TextBox Background="Transparent" BorderBrush="Transparent" FontSize="22"  Foreground="#207559" HorizontalAlignment="Center" Text="00:00"/>
+                    <TextBox Background="Transparent" BorderBrush="Transparent" FontSize="22"  Foreground="#207559" HorizontalAlignment="Center"  Margin="10,0,9.2,0" Text="{Binding ExecutionTime}" Width="80" VerticalAlignment="Center" TextAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
 
@@ -62,7 +65,7 @@
             </ListView>
         </Grid>
         <Border BorderBrush="#FF207559" BorderThickness="3" Margin="10,8,7.8,11.6" Grid.Row="1" Background="#FF959595">
-            <Image Margin="10" Source="{Binding OutputImage, Mode=TwoWay}" Grid.Row="1"/>
+            <Image Margin="0" Source="{Binding OutputImage, Mode=TwoWay}" Grid.Row="1" Stretch="Fill"/>
         </Border>
 
     </Grid>
