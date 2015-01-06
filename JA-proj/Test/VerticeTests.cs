@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Xml.Serialization;
+using JA_proj.Model;
 using JA_proj.NativeCodeBridge;
 using JA_proj.ViewModel;
 using NUnit.Framework;
@@ -68,6 +71,21 @@ namespace JA_proj.Test
             Assert.That(intColor, Is.EqualTo(0xFFAACCBB));
         }
 
+        [Test]
+        public void TestAssemblerPolygon()
+        {
+            int height = 600;
+            int width = 600;
+            var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
+            var figure = new VerterxFigure("#FFEA2E2E")
+            {
+                Name = "Squere",
+                Vertices = new[] { new Vertex(10, 10), new Vertex(200, 200), new Vertex(200, 500) }
+            };
+            var imageArray = figure.Draw(drawer);
 
+            var output = ImageUtility.ConvertToImage(imageArray, width, height);
+            ImageUtility.SaveBitmap(output, "TestOut.png");
+        }
     }
 }

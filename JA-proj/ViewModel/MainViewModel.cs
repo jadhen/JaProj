@@ -35,7 +35,7 @@ namespace JA_proj.ViewModel
         private AlgorithmsImplementation choosenAlgotithm;
         private IFigureLoader figureLoader;
         private string filePath;
-        private int numberOfThreads = Environment.ProcessorCount;
+        private int numberOfThreads = 1;// Environment.ProcessorCount;
         private string executionTime = "00:00";
 
         /// <summary>
