@@ -74,8 +74,8 @@ namespace JA_proj.Test
         [Test]
         public void TestAssemblerPolygon()
         {
-            int height = 5;
-            int width = 5;
+            int height = 10;
+            int width = 10;
             var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
             var figure = new VerterxFigure("#FFEA2E2E")
             {

@@ -41,7 +41,7 @@ CalculateIntersections proc uses EBX ECX EDX ESI EDI row : SDWORD, ; aktualnie p
 				rowBetweenTwoVerticies:
 					mov EAX, [ESI + ECX*8].x ; eax = vertex[i].X
 					cmp EAX, [ESI + EDX*8].x ; porównaj eax z vertex[j].X
-					jpe verticalLine ;  punkty vertex[i] i  vertez[j] le¿¹ na poziomej linii
+					je verticalLine ;  punkty vertex[i] i  vertez[j] le¿¹ na poziomej linii
 						;--- wierzcho³ki nie le¿¹ na poziomej linii
 						;----double a = (vertex[j].Y  - vertex[i].Y ) / (double)(vertex[j].X  - vertex[i].X );
 						mov EAX, [ESI + EDX*8].y ; eax = vertex[j].y
@@ -131,7 +131,7 @@ FillPolygon proc uses EBX ECX EDX ESI EDI	numberOfIntersections : SDWORD, ; licz
 		jge endFillLoop
 		mov EAX, 0
 		cmp EAX, [ESI + EDX*4]
-			cmovge EAX, [ESI + EDX*4] ; if intersection[i] < 0
+			cmovl EAX, [ESI + EDX*4] ; if intersection[i] < 0
 		mov ECX, [ESI + EDX*4+4]
 		cmp ECX,  maxX
 			CMOVG ECX, maxX ; if intersection[i+1] > maxX
