@@ -74,18 +74,35 @@ namespace JA_proj.Test
         [Test]
         public void TestAssemblerPolygon()
         {
+            int height = 5;
+            int width = 5;
+            var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
+            var figure = new VerterxFigure("#FFEA2E2E")
+            {
+                Name = "Squere",
+                Vertices = new[] { new Vertex(1, 2), new Vertex(4, 4), new Vertex(3, 6) }
+            };
+            var imageArray = figure.Draw(drawer);
+
+            var output = ImageUtility.ConvertToImage(imageArray, width, height);
+            ImageUtility.SaveBitmap(output, "TestOut.png");
+        }      
+        
+        [Test]
+        public void TestAssemblerComplexPolygon()
+        {
             int height = 600;
             int width = 600;
             var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
             var figure = new VerterxFigure("#FFEA2E2E")
             {
                 Name = "Squere",
-                Vertices = new[] { new Vertex(10, 10), new Vertex(200, 200), new Vertex(200, 500) }
+                Vertices = new[] { new Vertex(10, 10), new Vertex(400, 200), new Vertex(200, 500) }
             };
             var imageArray = figure.Draw(drawer);
 
             var output = ImageUtility.ConvertToImage(imageArray, width, height);
-            ImageUtility.SaveBitmap(output, "TestOut.png");
+            ImageUtility.SaveBitmap(output, "TestOut2.png");
         }
     }
 }

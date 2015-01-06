@@ -61,7 +61,7 @@ CalculateIntersections proc uses EBX ECX EDX ESI EDI row : SDWORD, ; aktualnie p
 						cvtsi2sd xmm1, row ; xmm1 = row
 						subsd xmm1, xmm2 ; xmm1 = row - b
 						divsd xmm1, xmm0 ; xmm1 = (row - b) / a
-						cvtsd2si eax, xmm1 ; eax = (int) xmm1
+						cvttsd2si eax, xmm1 ; eax = (int) xmm1
 						 
 						; w eax mamy wartoœæ któr¹ chcemy zapisaæ wiec mozemy wykorzystaæ makro ponizej
 				
