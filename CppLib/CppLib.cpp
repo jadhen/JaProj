@@ -88,13 +88,12 @@ bool IsInsideCircle(int centerX, int centerY, int radianSqrt, int x, int y)
 }
 extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int columnCount, int color, Vertex center, int radius)
 {
-	for (int row = 0; row < rowCount; row++)
-	{
+
 		int index;
 		int radianSqrt = radius * radius;
 
 		int minY = center.Y - radius;
-		int maxY = center.X + radius;
+		int maxY = center.Y + radius;
 
 		int endY = maxY < rowCount ? maxY : rowCount;
 		int startY = minY > 0 ? minY : 0;
@@ -133,5 +132,5 @@ extern "C" CPPLIB_API void DrawCircle(int bitmapArray[], int rowCount, int colum
 		}
 
 	}
-}
+
 

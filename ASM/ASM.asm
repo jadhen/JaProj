@@ -201,9 +201,117 @@ DrawFigure proc uses EBX ECX EDX ESI EDI bitmapArray : PTR SDWORD, ;tablica repr
 	end_main_loop:
 	ret
 DrawFigure endp
+;----------------------sprawdza czy dany punkt jest wewn¹trz okrêgu
+IsInsideCircle proc uses EBX ECX EDX	centerX : SDWORD, ; wspó³rzêdna x œrodka okrêgu
+									centerY : SDWORD, ; wspó³rzêdna y œrodka okrêgu
+									radiusSqr : SDWORD, ; kwadrat promienia okrêgu
+									x : SDWORD, ; wspó³rzêdna x przetwarzanego punktu
+									y : SDWORD ; wspó³rzêdna y przetwarzanego punktu
+	
+	mov EAX, x 
+	sub EAX, centerX ; eax = x - centerX
+	mul EAX ; eax = eax ^2
+	mov EBX, EAX ; ebx = (x - centerX)^2
+	mov EAX, y
+	sub EAX, centerY
+	mul EAX ; eax = (y - centerY)^2
+	add EAX, EBX ; eax = sum
+	cmp EAX, radiusSqr
+		jnl false
+		mov EAX, 1 ; obszar wewn¹trz okregu
+		ret
+	false: 
+		mov EAX, 0 ; punkt poza okrêgiem	
+		ret		
+							
+IsInsideCircle endp	
 
-DrawCircle proc bitmapArray : PTR SDWORD, rowCount:SDWORD, columnCount : SDWORD,  color : SDWORD,  center : VERTEX, radius: SDWORD
-	mov eax, rowCount
-	ret
+DrawCircle proc uses EBX ECX EDX ESI EDI	bitmapArray : PTR SDWORD, ; wskaŸnik do tablicy z obrazem
+											rowCount:SDWORD, ; liczba wierszy -> wysokoœæ obrazu
+											columnCount : SDWORD,  ; liczba kolumn -> szerokoœæ wykresu
+											color : SDWORD,  ; kolor wype³nienia figury
+											center : VERTEX, ; wspó³rzedna œrodka okrêgu
+											radius: SDWORD ; prominieñ okrêgu
+
+		local minY : SDWORD ; wyznacza lewa krawedz okrêgu
+		local maxY :SDWORD ; wyznacza praw¹ 
+
+		
+
+		mov ESI, bitmapArray ; w ESI wskaŸnik do tablicy z obrazem 
+		assume ESI :  PTR SDWORD
+		mov EBX, center.y
+		sub EBX, radius ; ebx = minY
+		mov EDX, center.y 
+		add EDX, radius ; edx = maxY
+		mov EAX, 0
+		cmp EBX, EAX
+			cmovl EBX, EAX ; if ebx < 0 ebx = 0 ebx =startY
+		cmp EDX, rowCount
+			cmovg EDX, rowCount ; if edx > rowCount, edx = rowCount ; edx = endY
+		mov maxY, EDX
+		;mov minY, EBX 
+		fillLoop: 
+			cmp EBX, maxY ;for (int y = startY; y < endY; y++) ebx = minY
+			jge endFillLoop
+				mov minY, EBX 
+				
+				mov ECX, 0 
+				innerLoop:
+					cmp ECX, radius
+					jge endInnerLoop
+						mov EDX, center.x 
+						
+						mov EAX, radius
+						mul radius ; eax = radius^2
+						mov EDI, center.x 
+						add EDI, ECX ; edi = center.x + x
+						invoke IsInsideCircle, center.x, center.y, EAX, EDI, minY
+						cmp EAX, 0 
+						je nextInnerLoop
+							
+							
+							;-----edi - left, edx - right
+							mov EDX, center.x 
+						sub EDX, ECX ; eax = center.x-x 
+							cmp EDI, columnCount
+							jge nextInnerLoop
+							mov EDX, center.x 
+						sub EDX, ECX ; eax = center.x-x 
+							cmp EDX, 0
+							jl nextInnerLoop
+							cmp EDX, columnCount ;EDX
+							jge nextCondition
+								mov EAX, columnCount
+								mul EBX
+								mov EDX, center.x 
+								sub EDX, ECX ; eax = center.x-x 
+								add EAX, EDX ; eax - index
+								mov EBX, color
+								mov [ESI + EAX*4], EBX
+								mov EBX, minY
+						nextCondition:
+							mov EDI, center.x 
+						add EDI, ECX ; edi = center.x + x
+							cmp EDI, 0
+							jl nextInnerLoop
+								mov EAX, columnCount
+								mul EBX
+								add EAX, EDI ; eax - index
+								mov EBX, color
+								mov [ESI + EAX*4], EBX		
+						nextInnerLooP:
+							inc ECX ; zwiekszenie 
+							mov EBX, minY
+							jmp innerLoop
+
+				endInnerLoop:
+					
+					inc EBX ;  zinkrementowanie licznika g³ónej pêtli 
+					jmp fillLoop ; kolejna iteracja g³ównej pêtli
+
+		
+	endFillLoop:
+		ret
 DrawCircle endp
 end 

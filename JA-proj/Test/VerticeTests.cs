@@ -104,5 +104,22 @@ namespace JA_proj.Test
             var output = ImageUtility.ConvertToImage(imageArray, width, height);
             ImageUtility.SaveBitmap(output, "TestOut2.png");
         }
+
+        [Test]
+        public void TestAssemblerCircle()
+        {
+            int height = 10;
+            int width = 10;
+            var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
+            var figure = new Circle("Cicrle","#FFEA2E2E")
+            {
+                Center = new Vertex(2,5),
+                Radius = 4
+            };
+            var imageArray = figure.Draw(drawer);
+
+            var output = ImageUtility.ConvertToImage(imageArray, width, height);
+            ImageUtility.SaveBitmap(output, "TestOut3.png");
+        }
     }
 }
