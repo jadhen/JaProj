@@ -271,33 +271,35 @@ DrawCircle proc uses EBX ECX EDX ESI EDI	bitmapArray : PTR SDWORD, ; wskaünik do
 						je nextInnerLoop
 							
 							
-							;-----edi - left, edx - right
+							;-----edi - right, edx - left
 							mov EDX, center.x 
 						sub EDX, ECX ; eax = center.x-x 
-							cmp EDI, columnCount
+							cmp EDX, columnCount
 							jge nextInnerLoop
 							mov EDX, center.x 
 						sub EDX, ECX ; eax = center.x-x 
-							cmp EDX, 0
+							cmp EDI, 0
 							jl nextInnerLoop
-							cmp EDX, columnCount ;EDX
+							cmp EDI, columnCount ;EDX
 							jge nextCondition
 								mov EAX, columnCount
 								mul EBX
 								mov EDX, center.x 
 								sub EDX, ECX ; eax = center.x-x 
-								add EAX, EDX ; eax - index
+								add EAX, EDI ; eax - index
 								mov EBX, color
 								mov [ESI + EAX*4], EBX
 								mov EBX, minY
 						nextCondition:
 							mov EDI, center.x 
 						add EDI, ECX ; edi = center.x + x
-							cmp EDI, 0
+							cmp EDX, 0
 							jl nextInnerLoop
 								mov EAX, columnCount
 								mul EBX
-								add EAX, EDI ; eax - index
+								mov EDX, center.x 
+						sub EDX, ECX ; eax = center.x-x 
+								add EAX, EDX ; eax - index
 								mov EBX, color
 								mov [ESI + EAX*4], EBX		
 						nextInnerLooP:
