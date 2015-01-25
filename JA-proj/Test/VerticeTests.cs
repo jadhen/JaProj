@@ -97,7 +97,7 @@ namespace JA_proj.Test
             var figure = new VerterxFigure("#FFEA2E2E")
             {
                 Name = "Squere",
-                Vertices = new[] { new Vertex(10, 10), new Vertex(400, 200), new Vertex(200, 500) }
+                Vertices = new[] { new Vertex(100, 300), new Vertex(300, 250), new Vertex(500, 300), new Vertex(500, 100), new Vertex(300, 200), new Vertex(100, 100) }
             };
             var imageArray = figure.Draw(drawer);
 
@@ -126,17 +126,33 @@ namespace JA_proj.Test
         public void TestAssemblerBigCircle()
         {
             int height = 600;
-            int width = 600;
+            int width = 400;
             var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
             var figure = new Circle("Cicrle", "#FFEA2E2E")
             {
-                Center = new Vertex(50, 300),
+                Center = new Vertex(200, 200),
                 Radius = 100
             };
             var imageArray = figure.Draw(drawer);
 
             var output = ImageUtility.ConvertToImage(imageArray, width, height);
             ImageUtility.SaveBitmap(output, "TestOut4.png");
+        }
+        [Test]
+        public void TestAssemblerCrown()
+        {
+            int height = 600;
+            int width = 600;
+            var drawer = DrawingLibraryFactory.GetFigureDrawer(AlgorithmsImplementation.ASM, width, height);
+            var figure = new VerterxFigure("#FFEA2E2E")
+            {
+                Name = "Squere",
+                Vertices = new[] { new Vertex(200, 300), new Vertex(250, 250), new Vertex(300, 300), new Vertex(300, 100), new Vertex(100, 100), new Vertex(100, 300), new Vertex(150, 250) }
+            };
+            var imageArray = figure.Draw(drawer);
+
+            var output = ImageUtility.ConvertToImage(imageArray, width, height);
+            ImageUtility.SaveBitmap(output, "TestOut2.png");
         }
     }
 }

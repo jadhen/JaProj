@@ -8,105 +8,120 @@ VERTEX struct
  y SDWORD ?
 VERTEX ends
 ;-------------wylicza przeciêcia danego wiersza z figur¹---------;
-CalculateIntersections proc uses EBX ECX EDX ESI EDI row : SDWORD, ; aktualnie przetwarzany wiersz
-							numberOfVerticies : SDWORD, ; liczba wierzcho³ków
-							vertexTab : PTR VERTEX, ; wskaŸnik na tablice wierzcho³ków
-							intersections : PTR SDWORD ; wskaŸnik do tablicy z przeciêciami
+CalculateIntersections proc uses EBX ECX EDX ESI EDI row : SDWORD,	; aktualnie przetwarzany wiersz
+							numberOfVerticies : SDWORD,				; liczba wierzcho³ków
+							vertexTab : PTR VERTEX,					; wskaŸnik na tablice wierzcho³ków
+							intersections : PTR SDWORD				; wskaŸnik do tablicy z przeciêciami
 
 
-	mov ebx, 0 ; EBX - licznik wyznaczonych przeciêæ
+	mov EBX, 0						; EBX - licznik wyznaczonych przeciêæ
 	mov EDX, numberOfVerticies
-	dec EDX ;  w edx liczba wierzcho³ków - 1 -> j
+	dec EDX							; EDX  - liczba wierzcho³ków - 1 -> j
 	mov ECX, 0
-	calculateIntersectionsLoop: ; pêtla po wszystkich wierzcho³kach
-		cmp ECX, numberOFVerticies ; ECX - iterator po pêtli
-		jge calculateIntersectionsLoop_end
-		;----------pierwszy if ----------
-		mov esi, vertexTab ; ESI - wskaŸnik do tablicy wierzcho³ków
+	calculateIntersectionsLoop:		; pêtla po wszystkich wierzcho³kach
+		cmp ECX, numberOFVerticies			; ECX - iterator po pêtli
+		jge calculateIntersectionsLoop_end	; je¿eli ECX wiêksze równe liczba wierzcho³ków przerywamy obliczenia
+		
+		;--- sprawdzamy czy dany wiersz znajduje siê miêdzy badan¹ par¹ wierzcho³ków
+		;--- tak bêdzie jezeli (row < vertex[i].y && row >= vertex[j].y) || (row >= vertex[i].y && row < vertex[j].y)
+		;--- gdzie vertex[i] i vertex[j] to para kolejnych wierzcho³ków
+
+		mov ESI, vertexTab			; ESI - wskaŸnik do tablicy wierzcho³ków
 		assume ESI : PTR VERTEX
-		checkIfBetweenPairOfVerices:
-		mov eax, [ESI + ECX * 8].y ; vertex ma rozmiar 8 bo 2xSDWORD, eax = vertex[i].Y
-		cmp eax, row 
-		jge secondCondition ;-----vertex[i].Y  >= row
-		;------vertex[i].Y  < row
-			mov EAX, [ESI + EDX*8].y ; eax = vetricies[j].y
+		mov EAX, [ESI + ECX * 8].y	; vertex ma rozmiar 8 bo 2xSDWORD, EAX = vertex[i].Y
+		cmp EAX, row 
+		jge secondCondition			;vertex[i].Y  >= row
+			;--- spe³niony warunek vertex[i].Y  < row
+			mov EAX, [ESI + EDX*8].y		; EAX = vertex[j].y
 			cmp EAX, row
-			jge rowBetweenTwoVerticies ; vertex[i].y  >= row --> wiersz pomiedzy dwoma wierzcho³kami
-			jmp checkNextPairOfVerticies
+			jge rowBetweenTwoVerticies		; vertex[i].y  >= row --> wiersz pomiedzy dwoma wierzcho³kami
+			jmp checkNextPairOfVerticies	; przejdŸ do porównania kolejnej pary wierzcho³ków
+
 		secondCondition:
-			mov EAX, [ESI + EDX*8].y ; eax = vetricies[j].Y
+			;--- spe³niony warunek vertex[i].Y  >= row
+			mov EAX, [ESI + EDX*8].y		; EAX = vertex[j].Y
 			cmp EAX, row
-			jl rowBetweenTwoVerticies ; vertex[j].y  < row --> wiersz pomiedzy dwoma wierzcho³kami
-			jmp checkNextPairOfVerticies
+			jl rowBetweenTwoVerticies		; vertex[j].y  < row --> wiersz pomiedzy dwoma wierzcho³kami
+			jmp checkNextPairOfVerticies	; przejdŸ do porównania kolejnej pary wierzcho³ków
+
 				rowBetweenTwoVerticies:
-					mov EAX, [ESI + ECX*8].x ; eax = vertex[i].X
-					cmp EAX, [ESI + EDX*8].x ; porównaj eax z vertex[j].X
-					je verticalLine ;  punkty vertex[i] i  vertez[j] le¿¹ na poziomej linii
-						;--- wierzcho³ki nie le¿¹ na poziomej linii
-						;----double a = (vertex[j].Y  - vertex[i].Y ) / (double)(vertex[j].X  - vertex[i].X );
-						mov EAX, [ESI + EDX*8].y ; eax = vertex[j].y
-						sub EAX, [ESI + ECX*8].y ; eax = vertex[j].y - vertex[i].y
-						cvtsi2sd xmm0, eax ; xmm0 = vertex[j].y - vertex[i].y
-						mov EAX, [ESI + EDX*8].x ; eax = vertex[j].y
-						sub EAX, [ESI + ECX*8].x ; eax = vertex[j].x - vertex[i].x
-						cvtsi2sd xmm1, eax ; xmm1 = vertex[j].x - vertex[i].x
+					;--- wiersz znajduje siê miêdzy dwoma wierzcho³kami - wyznaczmy wspó³rzêdn¹ x przeciêcia siê danego wiersza 
+					;--- z prost¹ przechodz¹ca przez badane wierzcho³ki
+					mov EAX, [ESI + ECX*8].x	; EAX = vertex[i].X
+					cmp EAX, [ESI + EDX*8].x	; porównaj EAX z vertex[j].X
+					je saveIntersection			; je¿eli punkty vertex[i] i  vertez[j] le¿¹ na poziomej linii to pomiñ wyznaczanie wspó³czynników, 
+												; w EAX mamy zapisan¹ wartoœæ przeciêcia wiersza z prost¹
+						
+					;--- wierzcho³ki nie le¿¹ na poziomej linii
+					;--- obliczmy wspó³czynnik nachylenia prostej a korzystaj¹c ze wzoru
+					;--- double a = (vertex[j].Y  - vertex[i].Y ) / (double)(vertex[j].X  - vertex[i].X );
+						
+					mov EAX, [ESI + EDX*8].y	; EAX = vertex[j].y
+					sub EAX, [ESI + ECX*8].y	; EAX = vertex[j].y - vertex[i].y
+					cvtsi2sd xmm0, EAX			; XMMO = vertex[j].y - vertex[i].y
+					mov EAX, [ESI + EDX*8].x	; EAX = vertex[j].y
+					sub EAX, [ESI + ECX*8].x	; EAX = vertex[j].x - vertex[i].x
+					cvtsi2sd xmm1, eax			; XMM1 = vertex[j].x - vertex[i].x
+					divsd xmm0, xmm1			; XMM0 = a
+						
+					;--- obliczmamy wyraz wolny równania prostej korzystaj¹c ze wzoru
+					;--- double b = vertex[i].Y  - a * vertex[i].X 
 
-						divsd xmm0, xmm1 ; xmm0 = a
-						;--------double b = vertex[i].Y  - a * vertex[i].X ;
-						cvtsi2sd xmm1, SDWORD PTR [ESI + ECX*8].x ; xmm1 = vertex[i].x
-						mulsd xmm1, xmm0 ; xmm1 = a* vertex[i].x
-						cvtsi2sd xmm2, SDWORD PTR [ESI + ECX*8].y ; xmm2 = vertex[i].y
-						subsd xmm2, xmm1 ; xmm2 = b
-						;---------intersections[numberOfIntersections++] = (int)((row - b) / a);
-						cvtsi2sd xmm1, row ; xmm1 = row
-						subsd xmm1, xmm2 ; xmm1 = row - b
-						divsd xmm1, xmm0 ; xmm1 = (row - b) / a
-						cvttsd2si eax, xmm1 ; eax = (int) xmm1
+					cvtsi2sd xmm1, SDWORD PTR [ESI + ECX*8].x	; XMM1 = vertex[i].x
+					mulsd xmm1, xmm0							; XMM1 = a* vertex[i].x
+					cvtsi2sd xmm2, SDWORD PTR [ESI + ECX*8].y	; XMM2 = vertex[i].y
+					subsd xmm2, xmm1							; XMM2 = b
+
+					;--- wyznaczamy przeciêcie z danym werszem 
+					;--- intersections[numberOfIntersections++] = (int)((row - b) / a);
+
+					cvtsi2sd xmm1, row		; XMM1 = row
+					subsd xmm1, xmm2		; XMM1 = row - b
+					divsd xmm1, xmm0		; XMM1 = (row - b) / a
+					cvttsd2si eax, xmm1		; EAX = (int) XMM1 
 						 
-						; w eax mamy wartoœæ któr¹ chcemy zapisaæ wiec mozemy wykorzystaæ makro ponizej
-				
-					verticalLine: ; wyznacz przeciêcie jezeli punkty vertex[i] i  vertez[j] le¿¹ na poziomej linii
-						;push EDX ; zapisanie wartoœæ edx na stosie
-						mov EDI, intersections ; w edx adres tablicy intersections
-						mov [EDI + EBX *4], EAX ; eax =  wartoœæ do zapisania, intersections[numberOFVerticies] = vertex[i] || (row - b) / a .
-						;pop EDX ; przywrócenie wartoœci rejestru edx
-						inc EBX ; zwiêksz o 1 liczbê wyznaczonych przeciêæ
+			saveIntersection: 
+				;--- w rejestrze eax mamy wyznaczon¹ wartoœæ przeciêcia prostej z danym wierszem
+				;--- zapisz wyznaczone przeciêcie w tabeli z przeciêciami
+				mov EDI, intersections		; w EDI adres tablicy intersections
+				mov [EDI + EBX *4], EAX		; EAX =  wartoœæ do zapisania, intersections[numberOFVerticies] = vertex[i] || (row - b) / a .
+				inc EBX						; zwiêksz o 1 liczbê wyznaczonych przeciêæ
 
-		checkNextPairOfVerticies: ; 
-			mov EDX, ECX ; i = j
-			inc ECX ; i++
+		checkNextPairOfVerticies:			; przechodzimy do analizy nastêpnej pary elementów 
+			mov EDX, ECX					; j = i
+			inc ECX							; i++
 			jmp CalculateIntersectionsLoop
-	calculateIntersectionsLoop_end: 
-		mov EAX, EBX ; w eax liczba wyznaczonych przeciêæ
-		
 
-		
- ret
+	calculateIntersectionsLoop_end: 
+		mov EAX, EBX						; w EAX liczba wyznaczonych przeciêæ	
+		ret
+
 CalculateIntersections endp
 ;-------------sortuje obliczone wierzcho³ki ----------------------;
 SortIntersections proc uses EBX ECX EDX ESI EDI numberOfIntersections : SDWORD, ; liczba przecieæ w danym wierszu
 												intersectionsTab : PTR SDWORD	; wskaŸnik do tablicy przeciêæ
 
-	mov ECX, 0 ; ecx -  iterator pêtli
+	mov ECX, 0						; ECX -  iterator pêtli
 	mov EBX, numberOfIntersections 
-	dec EBX ; ebx = numberOfIntersections -1
-	mov EDX, intersectionsTab ; edx - adres tablicy z przecieciami 
+	dec EBX							; EBX = numberOfIntersections -1
+	mov EDX, intersectionsTab		; EDX - adres tablicy z przecieciami 
 	mainLoop: 
-		cmp ECX, EBX
-		jg endMainLoop
-			mov ESI, [EDX + ECX*4] ; esi = intersections[i]
-			mov EDI, [EDX + ECX*4+4] ; edi = intersections[i+1]
+		cmp ECX, EBX				; je¿eli ECX > 	
+		jge endMainLoop
+			mov ESI, [EDX + ECX*4]		; ESI = intersections[i]
+			mov EDI, [EDX + ECX*4+4]	; EDI = intersections[i+1]
 			cmp ESI, EDI
 			jle correctOrder ;nie trzeba zamieniaæ elementów
 			;--- zamiana elementów
 				mov [EDX + ECX*4], EDI
 				mov [EDX + ECX*4+4], ESI
 				cmp ECX, 0 ; if(i == 0)
-				jne mainLoop
+				jz mainLoop
 					dec ECX
-					jmp mainLoop
+				jmp mainLoop
 			correctOrder:
 				inc ECX
+				jmp MainLoop
 
 	endMainLoop:
 		ret
@@ -114,6 +129,7 @@ SortIntersections proc uses EBX ECX EDX ESI EDI numberOfIntersections : SDWORD, 
 						
  ret
 SortIntersections endp
+
 ;----------------wype³nia kolorem kolenjne obszary miêdzy przeciêciami-------;
 FillPolygon proc uses EBX ECX EDX ESI EDI	numberOfIntersections : SDWORD, ; liczba przecieæ w wierzu
 											intersectionsTab : PTR SDWORD, ; wskaŸnik do tablicy w wyznaczonymi przeciêciami
@@ -123,29 +139,31 @@ FillPolygon proc uses EBX ECX EDX ESI EDI	numberOfIntersections : SDWORD, ; licz
 											row : SDWORD ; numer wiersza który wpe³niamy
 	
 	
-	mov EDX, 0	;edx - licznik pêtli	
-	mov ESI, intersectionsTab ; ESI - wskaŸnik na tablice z przecieciami
+	mov EDX, 0					; EDX- licznik pêtli	
+	mov ESI, intersectionsTab	; ESI - wskaŸnik na tablice z przecieciami
 	assume ESI : PTR SDWORD
-	fillLoop:		;pêtla po wszystkich wierzcho³akch
+	fillLoop:							; pêtla po wszystkich przeciêciach
 		cmp EDX, numberOfIntersections
 		jge endFillLoop
 		mov EAX, 0
+		; if intersection[i] < 0 then intersection[i] = 0 - ¿eby nie rysowaæ poza obszarem obrazu 
 		cmp EAX, [ESI + EDX*4]
-			cmovl EAX, [ESI + EDX*4] ; if intersection[i] < 0
+			cmovl EAX, [ESI + EDX*4]
+		; if intersection[i+1] > maxX then intersection[i+1] = maxX - ¿eby nie rysowaæ poza obrazem
 		mov ECX, [ESI + EDX*4+4]
 		cmp ECX,  maxX
-			CMOVG ECX, maxX ; if intersection[i+1] > maxX
+			CMOVG ECX, maxX				 
 		;---------przygotowanie pod operacje ³añcuchowe
-		sub ECX, EAX ; ecx = ecx - eax, ró¿nica miêdzy dwoma kolejnymi wierzco³kami
+		sub ECX, EAX					; ECX -licznik dla operacji ³añcuchowej - liczba punktów do pomalowania
 		mov EBX, maxX
-		imul EBX, row ; ebx - offset
-		add EBX, EAX ; ebx = offset + min
-		imul EBX,  4 ; EBX = 4(offset+min) odwo³ujemy sie do elementu [EDI + 4(offset+min)]
-		mov EDI, bitmapArray ; edi -addres bitmapy
-		add EDI, EBX ; adres od którego kolorujemy w EDI
+		imul EBX, row					; EBX - offset
+		add EBX, EAX					; EBX = offset + minX
+		imul EBX,  4					; EBX = 4(offset+minX) odwo³ujemy sie do elementu [EDI + 4(offset+min)]
+		mov EDI, bitmapArray			; EDI -addres bitmapy
+		add EDI, EBX					; adres od którego kolorujemy w EDI
 		mov EAX, color
-		; wype³nianie obszaru miedzy przecieciami
-		rep stosd ;
+		; wype³nianie obszaru miedzy przecieciami 
+		rep stosd							
 		add EDX, 2 ; inkrementacja licznika petli
 		jmp fillLoop;
 	endFillLoop:		
@@ -155,45 +173,39 @@ FillPolygon endp
 
 ;-------------Funkcja rysuj¹ca wielok¹t-----------------------;
 
-DrawFigure proc uses EBX ECX EDX ESI EDI bitmapArray : PTR SDWORD, ;tablica reprezentuj¹ca bitmapê
-	rowCount : SDWORD,		; wysokoœæ bitmapy
-	columnCount : SDWORD,	; szerokoœæ bitmapy
-	color :SDWORD,			; kolor wype³niania figury
-	vertexTab : PTR VERTEX, ; tablica z wierzcho³kami
-	vertexCount : SDWORD	; liczba wierzcho³ków
-	;------zmienne
-	local height : SDWORD ; zmienna reprezentuj¹ca wysokoœæ bitmapy
-	local i : SWORD ; iterator
-	local numberOfIntersectionsInRow : SDWORD ;liczba przeciêæ wyznaczona w danym wierszu 
-	; local row : SDWORD ; licznik wierszy
-	;local maxNumberOfIntersections : SDWORD 50
-	local intersections[50] : SDWORD ; tablica przechowywuj¹ca wyznaczone przeciêcia
-	;------inicjalizacja
-	mov eax, rowCount
-	mov height, eax
+DrawFigure proc uses EBX ECX EDX ESI EDI bitmapArray : PTR SDWORD,	; tablica reprezentuj¹ca bitmapê
+										 rowCount : SDWORD,			; wysokoœæ bitmapy
+										 columnCount : SDWORD,		; szerokoœæ bitmapy
+										 color :SDWORD,				; kolor wype³niania figury
+										 vertexTab : PTR VERTEX,	; tablica z wierzcho³kami
+										 vertexCount : SDWORD		; liczba wierzcho³ków
+	
+	;--- zmienne lokalne
+	local height : SDWORD						; zmienna reprezentuj¹ca wysokoœæ bitmapy
+	local i : SWORD								; iterator
+	local numberOfIntersectionsInRow : SDWORD	; liczba przeciêæ wyznaczona w danym wierszu 
+	local intersections[200] : SDWORD			; tablica przechowywuj¹ca wyznaczone przeciêcia
+	
+	;--- inicjalizacja lokalnych zmiennych
+	mov EAX, rowCount
+	mov height, EAX
 
-	
 	;------g³ówna pêtla programu
-	mov EBX, 0 ; EBX licznik rzedow
-	
-	mov esi, bitmapArray ; wpisanie do ESI adresu tablicy 
+	mov EBX, 0				; EBX licznik rzedow	
+	mov esi, bitmapArray	; wpisanie do ESI adresu tablicy w której prxehowywujemy wyrysowany obraz
 	
 	main_loop:
-		cmp EBX, height ;warunek pêtli
+		cmp EBX, height				; warunek pêtli
 		jge end_main_loop
-		mov EDX, vertexTab ; edx - adres tablicy z przeciêciami
-		;lea ESI, intersections[0] ;  ESI - adres tablicy na przeciêcia
+		mov EDX, vertexTab			; EDX - adres tablicy z przeciêciami
+		;--- wyznacz przeciêcia dla danego wiersza
 		invoke CalculateIntersections, EBX, vertexCount, EDX, addr intersections
-		mov numberOfIntersectionsInRow, EAX ; w eax zwrócna wartoœæ przez funkcje CalculateIntersections
+		mov numberOfIntersectionsInRow, EAX		; w EAX zwrócna wartoœæ przez funkcje CalculateIntersections, czyli liczba wyznaczonych przeciêæ
+		;--- sortuj wyznaczone przeciêcia
 		invoke SortIntersections , numberOfIntersectionsInRow, addr intersections
-		invoke FillPolygon ,numberOfIntersectionsInRow, addr intersections, rowCount, bitmapArray, color, EBX
+		;--- wype³nij wiersz kolorem
+		invoke FillPolygon ,numberOfIntersectionsInRow, addr intersections, columnCount, bitmapArray, color, EBX
 	
-		;mov edx, rowCount ; wyznaczenie offsetu
-		;imul edx, ebx
-
-		;mov ecx, color ; skopiowanie koloru
-
-		;mov [esi + edx * 4], ecx ; wype³nienie komórki bitmapy
 		;----inkrementacja licznika wierszy i zapisanie go do rejestru EBX
 		inc EBX
 		jmp main_loop
@@ -201,118 +213,123 @@ DrawFigure proc uses EBX ECX EDX ESI EDI bitmapArray : PTR SDWORD, ;tablica repr
 	end_main_loop:
 	ret
 DrawFigure endp
-;----------------------sprawdza czy dany punkt jest wewn¹trz okrêgu
+
+;--- funkcja sprawdza czy dany punkt jest wewn¹trz okrêgu
 IsInsideCircle proc uses EBX ECX EDX	centerX : SDWORD, ; wspó³rzêdna x œrodka okrêgu
-									centerY : SDWORD, ; wspó³rzêdna y œrodka okrêgu
-									radiusSqr : SDWORD, ; kwadrat promienia okrêgu
-									x : SDWORD, ; wspó³rzêdna x przetwarzanego punktu
-									y : SDWORD ; wspó³rzêdna y przetwarzanego punktu
+										centerY : SDWORD, ; wspó³rzêdna y œrodka okrêgu
+										radiusSqr : SDWORD, ; kwadrat promienia okrêgu
+										x : SDWORD, ; wspó³rzêdna x przetwarzanego punktu
+										y : SDWORD ; wspó³rzêdna y przetwarzanego punktu
 	
 	mov EAX, x 
-	sub EAX, centerX ; eax = x - centerX
-	mul EAX ; eax = eax ^2
-	mov EBX, EAX ; ebx = (x - centerX)^2
+	sub EAX, centerX	; EAX = x - center.X
+	mul EAX				; EAX = sqr(eax)
+	mov EBX, EAX		; EBX = sqr(x - center.X)
 	mov EAX, y
-	sub EAX, centerY
-	mul EAX ; eax = (y - centerY)^2
-	add EAX, EBX ; eax = sum
-	cmp EAX, radiusSqr
-		jnl false
-		mov EAX, 1 ; obszar wewn¹trz okregu
+	sub EAX, centerY	; EAX = y - centerY
+	mul EAX				; EAX = sqr(y - center.Y)
+	add EAX, EBX		; EAX = sqr(x - center.X) + sqr(y- center.Y)
+		cmp EAX, radiusSqr
+		jge false
+		mov EAX, 1		; obszar wewn¹trz okregu, poniewa¿ sqr(x - center.X) + sqr(y- center.Y) < radiusSqr
 		ret
 	false: 
-		mov EAX, 0 ; punkt poza okrêgiem	
+		mov EAX, 0		; punkt poza okrêgiem, poniewa¿ sqr(x - center.X) + sqr(y- center.Y) >= radiusSqr
 		ret		
 							
 IsInsideCircle endp	
 
+;--- funkcja rysuj¹ca okr¹g-------------------------------------------------------------------------
 DrawCircle proc uses EBX ECX EDX ESI EDI	bitmapArray : PTR SDWORD, ; wskaŸnik do tablicy z obrazem
 											rowCount:SDWORD, ; liczba wierszy -> wysokoœæ obrazu
 											columnCount : SDWORD,  ; liczba kolumn -> szerokoœæ wykresu
 											color : SDWORD,  ; kolor wype³nienia figury
 											center : VERTEX, ; wspó³rzedna œrodka okrêgu
 											radius: SDWORD ; prominieñ okrêgu
+	
+	;--- zmienne lokalne
+	local minY : SDWORD			; najbardziej wysuniêty w dó³ punkt okrêgu
+	local maxY : SDWORD			; najbardziej wysuniêty w górê lewo punkt okrêgu
+	
+	mov ESI, bitmapArray	; w ESI wskaŸnik do tablicy z obrazem 
+	assume ESI :  PTR SDWORD
+	mov EBX, center.y
+	sub EBX, radius			; EBX = minY
+	mov EDX, center.y 
+	add EDX, radius			; EDX = maxY
+	mov EAX, 0
+	; wyznaczamy skrajne punkty okrêgu w pionie
+	cmp EBX, EAX
+		cmovl EBX, EAX		; if ebx < 0 ? ebx = 0 ebx =startY
+	cmp EDX, rowCount
+		cmovg EDX, rowCount ; if edx > rowCount ? edx = rowCount ; edx = endY
+	mov maxY, EDX 
+	
+	; g³ówna pêtla wype³niaj¹ca okr¹g, przechodz¹ca po wspó³rzêdnych y
+	; nie musimy przechodziæ po wszystkich wspó³rzêdnych y, wystarczy przejœæ po y nale¿¹cych do zbioru <minY,maxY>
+	fillLoop: 
+		; for (int y = startY; y < endY; y++). EBX = minY, EBX - licznik pêtli po wierszach
+		cmp EBX, maxY		
+		jge endFillLoop
+			mov minY, EBX 
+			mov ECX, 0 
 
-		local minY : SDWORD ; wyznacza lewa krawedz okrêgu
-		local maxY :SDWORD ; wyznacza praw¹ 
+			; pêtla wewnêtrza przemieszczaj¹ca siê po punktach z zbioru 
+			; <center.x-radius , center.x + radius> dla danego wiersza
+			innerLoop:     
+				cmp ECX, radius 
+				jge endInnerLoop
+					mov EDX, center.x 
+					mov EAX, radius
+					mul radius			; EAX = sqr(radius)
+					mov EDI, center.x 
+					add EDI, ECX		; EDI = center.x + x
 
-		
-
-		mov ESI, bitmapArray ; w ESI wskaŸnik do tablicy z obrazem 
-		assume ESI :  PTR SDWORD
-		mov EBX, center.y
-		sub EBX, radius ; ebx = minY
-		mov EDX, center.y 
-		add EDX, radius ; edx = maxY
-		mov EAX, 0
-		cmp EBX, EAX
-			cmovl EBX, EAX ; if ebx < 0 ebx = 0 ebx =startY
-		cmp EDX, rowCount
-			cmovg EDX, rowCount ; if edx > rowCount, edx = rowCount ; edx = endY
-		mov maxY, EDX
-		;mov minY, EBX 
-		fillLoop: 
-			cmp EBX, maxY ;for (int y = startY; y < endY; y++) ebx = minY
-			jge endFillLoop
-				mov minY, EBX 
-				
-				mov ECX, 0 
-				innerLoop:
-					cmp ECX, radius
-					jge endInnerLoop
+					;sprawdzamy czy dany punkt nale¿y do okrêgu
+					invoke IsInsideCircle, center.x, center.y, EAX, EDI, minY
+					cmp EAX, 0			; w EAX zapisano wartoœæ 1/0 odowiednio gdy punkt znajduje / nie znajduje siê wewn¹trz okrêgu 
+					je nextInnerLoop	; je¿eli punkt nie znajduje sie wewn¹trz okregu, przejdŸ dalej 
+						; 
 						mov EDX, center.x 
-						
-						mov EAX, radius
-						mul radius ; eax = radius^2
-						mov EDI, center.x 
-						add EDI, ECX ; edi = center.x + x
-						invoke IsInsideCircle, center.x, center.y, EAX, EDI, minY
-						cmp EAX, 0 
-						je nextInnerLoop
-							
-							
-							;-----edi - right, edx - left
-							mov EDX, center.x 
-						sub EDX, ECX ; eax = center.x-x 
-							cmp EDX, columnCount
-							jge nextInnerLoop
-							mov EDX, center.x 
-						sub EDX, ECX ; eax = center.x-x 
-							cmp EDI, 0
-							jl nextInnerLoop
-							cmp EDI, columnCount ;EDX
-							jge nextCondition
-								mov EAX, columnCount
-								mul EBX
-								mov EDX, center.x 
-								sub EDX, ECX ; eax = center.x-x 
-								add EAX, EDI ; eax - index
-								mov EBX, color
-								mov [ESI + EAX*4], EBX
-								mov EBX, minY
-						nextCondition:
-							mov EDI, center.x 
-						add EDI, ECX ; edi = center.x + x
-							cmp EDX, 0
-							jl nextInnerLoop
-								mov EAX, columnCount
-								mul EBX
-								mov EDX, center.x 
-						sub EDX, ECX ; eax = center.x-x 
-								add EAX, EDX ; eax - index
-								mov EBX, color
-								mov [ESI + EAX*4], EBX		
-						nextInnerLooP:
-							inc ECX ; zwiekszenie 
+						sub EDX, ECX			; EDX = center.x-x 
+						cmp EDX, columnCount
+						jge nextInnerLoop		; je¿eli center.x -x jest wiêksza do iloœci kolumn (czyli maksymalnej wartoœci x) to przejdŸ do nastêpnego punktu
+						mov EDX, center.x 
+						sub EDX, ECX			; EDX = center.x-x 
+						cmp EDI, 0				; EDI = center.x + x
+						jl nextInnerLoop		; je¿eli center.x + x < 0 przejdŸ do nastêpnego punktu
+						cmp EDI, columnCount	
+						jge nextCondition		; je¿eli center.x+x > columnCount, sprawdŸ czy mo¿na pomalowaæ punkt center.x -x
+							; punkt o wspó³rzêdych center.x + x mo¿na kolorowaæ bo nale¿y do okrêgu i znajduje siê na obrazie
+							mov EAX, columnCount
+							mul EBX
+							add EAX, EDI		; EAX = index + center.x + x
+							mov EBX, color
+							mov [ESI + EAX*4], EBX
 							mov EBX, minY
-							jmp innerLoop
+					nextCondition:
+						;mov EDI, center.x 
+						;add EDI, ECX			; EDI = center.x + x
+						cmp EDX, 0
+						jl nextInnerLoop
+							; punkt o wspó³rzêdych center.x - x mo¿na kolorowaæ bo nale¿y do okrêgu i znajduje siê na obrazie
+							mov EAX, columnCount
+							mul EBX				; EAX = index 
+							mov EDX, center.x 
+							sub EDX, ECX		; EDX = center.x-x 
+							add EAX, EDX		; EAX = index + center.x - x
+							mov EBX, color
+							mov [ESI + EAX*4], EBX		
 
-				endInnerLoop:
-					
-					inc EBX ;  zinkrementowanie licznika g³ónej pêtli 
-					jmp fillLoop ; kolejna iteracja g³ównej pêtli
+					nextInnerLooP:
+						inc ECX					; zwiekszenie licznika wewnêtrzenej pêtli
+						mov EBX, minY 
+						jmp innerLoop			; powrót do pocz¹tku wewnêtrznej pêtli 
+	
+			endInnerLoop:
+				inc EBX			; zinkrementowanie licznika g³ónej pêtli 
+				jmp fillLoop	; kolejna iteracja g³ównej pêtli
 
-		
 	endFillLoop:
 		ret
 DrawCircle endp

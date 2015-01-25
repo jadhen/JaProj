@@ -7,6 +7,9 @@ using System.Windows.Data;
 
 namespace JA_proj.Converters
 {
+    /// <summary>
+    /// Konwereter 
+    /// </summary>
     public class EnumGroupRadioButton: IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

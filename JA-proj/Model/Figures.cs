@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 
 namespace JA_proj.ViewModel
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DrawingConfiguration
         
     {
